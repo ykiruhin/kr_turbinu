@@ -5,6 +5,30 @@ import numpy as np
 import streamlit as st
 import pandas as pd
 
+st.set_page_config(page_title="Курсовая работа", page_icon=":sunglasses:", layout = "wide")
+with st.container():
+    st.subheader('Кирюхин Ярослав, Фпэ-01-19, Вариант 5. :wave:')
+with st.container():
+  left_column, right_column = st.columns([1,1.2])
+  with left_column:
+      st.subheader('Исходные Данные:')
+      st.markdown('Турбина: Т-180/215-12.8-2 ЛМЗ')
+      st.markdown('p0 = 12.9 МПа')
+      st.markdown('t0 = 546 C')
+      st.markdown('G_0 = 243.13 кг/c')
+      st.markdown('d = 1.04 м')
+      st.markdown('n = 60 Гц')
+      st.markdown('Степень реактивности rho = 0.05')
+      st.markdown('H_0 = 90 - 110 кДж/кг')
+      st.markdown('b_1 = 0.06 м')
+      st.markdown('b_2 = 0.03 м')
+      st.markdown('l_1 = 0.015 м')
+      st.markdown('alpha_1 = 12 градусов')
+      st.markdown('delta = 0.003 градусов')
+      st.markdown('kappa_vs = 0')
+  with right_column:
+      st.subheader('Корректировка данных:')
+
 
 def iso_bar(wsp_point, min_s=-0.1, max_s=0.11, step_s=0.011, color = 'r'):
     if not isinstance(wsp_point,list):
