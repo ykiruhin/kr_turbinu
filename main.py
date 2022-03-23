@@ -9,26 +9,40 @@ st.set_page_config(page_title="Курсовая работа", page_icon=":sungl
 with st.container():
     st.subheader('Кирюхин Ярослав, Фпэ-01-19, Вариант 5. :wave:')
 with st.container():
-  left_column, right_column = st.columns([1,1.2])
-  with left_column:
-      st.subheader('Исходные Данные:')
-      st.markdown('Турбина: Т-180/215-12.8-2 ЛМЗ')
-      st.markdown('p0 = 12.9 МПа')
-      st.markdown('t0 = 546 C')
-      st.markdown('G_0 = 243.13 кг/c')
-      st.markdown('d = 1.04 м')
-      st.markdown('n = 60 Гц')
-      st.markdown('Степень реактивности rho = 0.05')
-      st.markdown('H_0 = 90 - 110 кДж/кг')
-      st.markdown('b_1 = 0.06 м')
-      st.markdown('b_2 = 0.03 м')
-      st.markdown('l_1 = 0.015 м')
-      st.markdown('alpha_1 = 12 градусов')
-      st.markdown('delta = 0.003 градусов')
-      st.markdown('kappa_vs = 0')
-  with right_column:
-      st.subheader('Корректировка данных:')
+    left_column, right_column = st.columns([1,1.2])
+    with left_column:
+        st.subheader('Исходные Данные:')
+        st.markdown('Турбина: Т-180/215-12.8-2 ЛМЗ')
+        st.markdown('Давление пара перед ступенью: p0 = 12.9 МПа')
+        st.markdown('Температура пара перед ступенью: t0 = 546 C')
+        st.markdown('Расход пара: G_0 = 243.13 кг/c')
+        st.markdown('Средний диаметр: d = 1.04 м')
+        st.markdown('Частота вращения: n = 60 Гц')
+        st.markdown('Степень реактивности rho = 0.05')
+        st.markdown('Теплоперепад: H_0 = 90 - 110 кДж/кг')
+        st.markdown('хорда сопловой лопатки: b_1 = 0.06 м')
+        st.markdown('хорда рабочей лопатки: b_2 = 0.03 м')
+        st.markdown('Высота лопатки: l_1 = 0.015 м')
+        st.markdown('Угол направления скорости c1t: alpha_1 = 12 градусов')
+        st.markdown('Перекрышка: delta = 0.003 градусов')
+        st.markdown('kappa_vs = 0')
+    with right_column:
+        st.subheader('Корректировка данных:')
+        p_0 = st.number_input('p0, МПа ', value = 12.9)
+        t0 = st.number_input('t0, C ', value = 546)
+        T_0 = t0 + 273.15  # K
+        G_0 = st.number_input('G_0, кг/с ', value=243.13)
+        d = st.number_input('d, м ', value=1.04)
+        n = st.number_input('n, Гц ', value=60)
+        rho = st.number_input('rho ', value=0.05)
+        b_1 = st.number_input('b_1, м ', value=0.06)
+        b_2 = st.number_input('b_2, м ', value=0.03)
+        l_1 = st.number_input('l_1, м ', value=0.015)
+        alpha_1 = st.number_input('alpha_1, градусов ', value=12)
+        delta = st.number_input('delta, градусов', value=0.003)
+        kappa_vs = st.number_input('kappa_vs', value=0)
 
+H_0 = 90 #кДж/кг
 
 def iso_bar(wsp_point, min_s=-0.1, max_s=0.11, step_s=0.011, color = 'r'):
     if not isinstance(wsp_point,list):
@@ -39,19 +53,13 @@ def iso_bar(wsp_point, min_s=-0.1, max_s=0.11, step_s=0.011, color = 'r'):
         iso_bar_0_h = [WSP(P = wsp_point[1].P, s = i).h for i in iso_bar_0_s]
     plt.plot(iso_bar_0_s,iso_bar_0_h,color)
 
-G_0 = 242.13 #кг/с
-d = 1.04 #м
-n = 60 #Гц
-p_0 = 12.9 #МПа
-T_0 = 546 + 273.15 #К
-rho = 0.05 #степень реактивности
-H_0 = 90 #кДж/кг
-b_1 = 0.06 #м
-b_2 = 0.03 #м
-l_1 = 0.015 #м
-alpha_1 = 12 #град
-delta = 0.003 #перекрыша
-kappa_vs = 0 #коэффициент использования выходной скорости
+#Диапазон h-s:
+def plot_hs_nozzle_t(x_lim, y_lim):
+    plt.plot([point_0.s, point_1t.s], [point_0.h, point_1t.h], 'ro-')
+    iso_bar(point_0, -0.02, 0.02, 0.001, 'c')
+    iso_bar(point_1t, -0.02, 0.02, 0.001, 'y')
+    plt.xlim(x_lim)
+    plt.ylim(y_lim)
 
 def callculate_optimum(d, p_0, T_0, n, G_0, H_0, rho, l_1, alpha_1, b_1, Delta, b_2, kappa_vs):
     u = M.pi*d*n
@@ -69,7 +77,6 @@ def callculate_optimum(d, p_0, T_0, n, G_0, H_0, rho, l_1, alpha_1, b_1, Delta, 
     if e_opt > 0.85:
         e_opt = 0.85
     l_1 = el_1/e_opt
-
     fi_1 = 0.98 - 0.008*(b_1/l_1)
     c_1 = c_1t*fi_1
     alpha_1 = M.degrees(M.asin(mu_1/fi_1*M.sin(M.radians(alpha_1))))
@@ -102,21 +109,34 @@ def callculate_optimum(d, p_0, T_0, n, G_0, H_0, rho, l_1, alpha_1, b_1, Delta, 
     etta_ol2 = (u*(c_1*M.cos(M.radians(alpha_1))+c_2*M.cos(M.radians(alpha_2))))/(E_0*1e3)
     return etta_ol2, alpha_2
 
+with st.container():
+    left_column, right_column = st.columns([1,1.2])
+    with left_column:
+        H_0 = [i for i in list(range(90, 110, 1))]
+        eta = []
+        ucf = []
+        graph1 = plt.figure()
+        for i in H_0:
+            ucf_1 = M.pi * d * n / (2000 * i) ** 0.5
+            ucf.append(ucf_1)
+            eta_ol, alpha = callculate_optimum(d, p_0, T_0, n, G_0, i, rho, l_1, alpha_1, b_1, delta, b_2, kappa_vs)
+            eta.append(eta_ol)
+        plt.grid(True)
+        plt.xlabel("оптимальная скорость")
+        plt.ylabel("КПД")
+        plt.plot(ucf, eta)
+        st.pyplot(graph1)
 
-H_0 = [i for i in list(range(90, 110, 1))]
-eta = []
-ucf = []
-for i in H_0:
-    ucf_1 = M.pi * d * n / (2000 * i) ** 0.5
-    ucf.append(ucf_1)
-    eta_ol, alpha = callculate_optimum(d, p_0, T_0, n, G_0, i, rho, l_1, alpha_1, b_1, delta, b_2, kappa_vs)
-    print(i, eta_ol, alpha, ucf_1)
-    eta.append(eta_ol)
+    with right_column:
+        itog=pd.DataFrame({
+        "H_0, кДж/кг": (list(np.arange(90,110,1))),
+        "eta_oi": eta,
+        "alpha": alpha,
+        "ucf_1": ucf
+        })
+        itog
 
-plt.plot(ucf, eta)
-plt.show()
-
-H_0 = 90 #при этом значении кпд максимальный
+H_0 = 90 #при этом значении кпд максимальный!
 u = M.pi*d*n
 print(f'u = {u:.2f} м/с')
 point_0 = WSP(P = p_0, T = T_0)
@@ -140,16 +160,6 @@ e_opt=6*el_1**0.5
 if e_opt > 0.85:
     e_opt = 0.85
 l_1 = el_1/e_opt
-
-def plot_hs_nozzle_t(x_lim, y_lim):
-    plt.plot([point_0.s, point_1t.s],[point_0.h, point_1t.h],'ro-')
-    iso_bar(point_0,-0.02,0.02,0.001,'c')
-    iso_bar(point_1t,-0.02,0.02,0.001,'y')
-    plt.xlim(x_lim)
-    plt.ylim(y_lim)
-
-plot_hs_nozzle_t([6.55,6.65],[3350,3490])
-plt.show()
 
 print(f'l_1 = {l_1:.4f} м')
 if alpha_1 <= 10:
@@ -211,22 +221,11 @@ print(f'w_1 = {w_1}')
 c_1u = c_1*M.cos(M.radians(alpha_1))
 c_1a = c_1*M.sin(M.radians(alpha_1))
 w_1u = c_1u - u
-w_1_tr = [0, 0, -w_1u, -c_1a]
-c_1_tr = [0, 0, -c_1u, -c_1a]
-u_1_tr = [-w_1u, -c_1a, -u, 0]
-ax = plt.axes()
-ax.arrow(*c_1_tr, head_width=5, length_includes_head = True,head_length=20, fc='m', ec='m')
-ax.arrow(*w_1_tr, head_width=5, length_includes_head = True,head_length=20, fc='r', ec='r')
-ax.arrow(*u_1_tr, head_width=5, length_includes_head = True,head_length=20, fc='y', ec='y')
-plt.text(-2*c_1u/3, -3*c_1a/4, '$c_1$', fontsize=20)
-plt.text(-2*w_1u/3, -3*c_1a/4, '$w_1$', fontsize=20)
-plt.show()
 
 betta_1 = M.degrees(M.atan(M.sin(M.radians(alpha_1))/(M.cos(M.radians(alpha_1))-u/c_1)))
-print(f'betta_1 = {betta_1:.2f}')
 Delta_Hs = c_1t**2/2*(1-fi_1**2)
-print(f'Delta_Hs = {Delta_Hs:.2f} Дж/кг')
 
+#h-s диаграмма:
 h_1 = h_1t + Delta_Hs*1e-3
 print(f'h_1 = {h_1:.2f} кДж/кг')
 point_1 = WSP(P = point_1t.P, h = h_1)
@@ -245,15 +244,7 @@ print(f'F_2 = {F_2:.2f}')
 betta_2 = M.degrees(M.asin(F_2/(e_opt*M.pi*d*l_2)))
 print(f'betta_2 = {betta_2:.2f}')
 point_1w = WSP(h = point_1.h+w_1**2/2*1e-3, s = point_1.s)
-def plot_hs_stage_t(x_lim,y_lim):
-    plot_hs_nozzle_t(x_lim,y_lim)
-    plt.plot([point_0.s,point_1.s],[point_0.h,point_1.h],'bo-')
-    plt.plot([point_1.s,point_2t.s],[point_1.h,point_2t.h], 'ro-')
-    plt.plot([point_1.s,point_1.s],[point_1w.h, point_1.h],'ro-')
-    iso_bar(point_2t,-0.02,0.02,0.001,'y')
-    iso_bar(point_1w,-0.005,0.005,0.001,'c')
-plot_hs_stage_t([6.55,6.65],[3350,3480])
-plt.show()
+
 
 if betta_2 <= 15:
     RotorBlade = 'P-23-14A'
@@ -262,7 +253,6 @@ if betta_2 <= 15:
     f2_mod = 2.44
     W2_mod = 0.39
     beta_inst2 = betta_2-12.5*(t2_-0.75)+20.2
-
 elif  15 < betta_2 <= 19:
     RotorBlade = 'P-26-17A'
     t2_ = 0.65
@@ -270,8 +260,6 @@ elif  15 < betta_2 <= 19:
     f2_mod = 2.07
     W2_mod = 0.225
     beta_inst2 = betta_2-19.3*(t2_-0.6)+60
-
-
 elif  19 < betta_2 <= 23:
     RotorBlade = 'P-30-21A'
     t2_ = 0.63
@@ -279,8 +267,6 @@ elif  19 < betta_2 <= 23:
     f2_mod = 1.85
     W2_mod = 0.234
     beta_inst2 = betta_2-12.8*(t2_-0.65)+58
-
-
 elif 23 < betta_2 <= 27:
     RotorBlade = 'P-35-25A'
     t2_ = 0.6
@@ -288,7 +274,6 @@ elif 23 < betta_2 <= 27:
     f2_mod = 1.62
     W2_mod = 0.168
     beta_inst2 = betta_2-16.6*(t2_-0.65)+54.3
-
 elif 27 < betta_2 <= 31:
     RotorBlade = 'P-46-29A'
     t2_ = 0.51
@@ -296,8 +281,6 @@ elif 27 < betta_2 <= 31:
     f2_mod = 1.22
     W2_mod = 0.112
     beta_inst2 = betta_2-50.5*(t2_-0.6)+47.1
-
-
 else:
     RotorBlade = 'P-50-33A'
     t2_ = 0.49
@@ -306,67 +289,74 @@ else:
     W2_mod = 0.079
     beta_inst2 = betta_2-20.8*(t2_-0.6)+43.7
 
-print('Тип профиля:',  RotorBlade)
-print(f'Оптимальный относительный шаг t2_ = {t2_}')
-
 z2 = int((M.pi*d)/(b_2*t2_))
-print(f'z2 = {z2}')
 t2_ = (M.pi*d)/(b_2*z2)
 Ksi_2_ = 4.364*b_2/l_2 + 4.22
 k_21 = -13.79438991*M_2t**4 + 36.69102267*M_2t**3 - 32.78234341*M_2t**2 + 10.61998662*M_2t + 0.28528786
 k_22 = 0.00331504*betta_1**2 - 0.21323910*betta_1 + 4.43127194
 k_23 = 60.72813684*t2_**2 - 76.38053189*t2_ + 24.97876023
 Ksi_2 = Ksi_2_*k_21*k_22*k_23
-
 psi = M.sqrt(1-Ksi_2/100)
-print(f'psi = {psi:.2f}')
-
 psi = 0.91
-
 w_2 = psi*w_2t
-print(f'w_2 = {w_2:.2f} м/с')
 c_2 = (w_2**2+u**2-2*u*w_2*M.cos(M.radians(betta_2)))**0.5
-print(f'c_2 = {c_2:.2f} м/с')
 alpha_2 = M.degrees(M.atan(M.sin(M.radians(betta_2))/(M.cos(M.radians(betta_2))-u/w_2)))
-print(f'alpha_2 = {alpha_2:.2f}')
 Delta_Hr = w_2t**2/2*(1-psi**2)
-print(f'Delta_Hr = {Delta_Hr:.2f} Дж/кг')
 h_2 = h_2t+Delta_Hr*1e-3
 point_2 = WSP(P = point_2t.P, h = h_2)
 Delta_Hvs = c_2**2/2
-print(f'Delta_Hvs = {Delta_Hvs:.2f} Дж/кг')
 E_0 = H_0 - kappa_vs*Delta_Hvs
 etta_ol1 = (E_0*1e3 - Delta_Hs-Delta_Hr-(1-kappa_vs)*Delta_Hvs)/(E_0*1e3)
-print(f'1. etta_ol = {etta_ol1}')
 etta_ol2 = (u*(c_1*M.cos(M.radians(alpha_1))+c_2*M.cos(M.radians(alpha_2))))/(E_0*1e3)
-print(f'2. etta_ol = {etta_ol2}')
 
-c_1u = c_1*M.cos(M.radians(alpha_1))
-c_1a = c_1*M.sin(M.radians(alpha_1))
-w_1u = c_1u - u
-w_2a = w_2*M.sin(M.radians(betta_2))
-w_2u = w_2*M.cos(M.radians(betta_2))
-c_2u=w_2u+u
-print(c_1u,w_1u)
-w_1_tr = [0, 0, -w_1u, -c_1a]
-c_1_tr = [0, 0, -c_1u, -c_1a]
-u_1_tr = [-w_1u, -c_1a, -u, 0]
+with st.container():
+    left_column, right_column = st.columns([1,1])
+    with left_column:
+        graph2 = plt.figure()
+        def plot_hs_stage_t(x_lim,y_lim):
+            plot_hs_nozzle_t(x_lim,y_lim)
+            plt.plot([point_0.s,point_1.s],[point_0.h,point_1.h],'bo-')
+            plt.plot([point_1.s,point_2t.s],[point_1.h,point_2t.h], 'ro-')
+            plt.plot([point_1.s,point_1.s],[point_1w.h, point_1.h],'ro-')
+            iso_bar(point_2t,-0.02,0.02,0.001,'y')
+            iso_bar(point_1w,-0.005,0.005,0.001,'c')
+        plot_hs_stage_t([6.55,6.65],[3350,3480])
+        plt.grid(True)
+        plt.title("h - s диаграмма")
+        plt.xlabel("s, кДж/(кг*К)")
+        plt.ylabel("h, кДж/кг")
+        st.pyplot(graph2)
 
-w_2_tr = [0, 0, w_2u, -w_2a]
-c_2_tr = [0, 0, c_2u, -w_2a]
-u_2_tr = [c_2u,-w_2a, -u, 0]
-ax = plt.axes()
-ax.arrow(*c_1_tr, head_width=5, length_includes_head = True,head_length=20, fc='r', ec='r')
-ax.arrow(*w_1_tr, head_width=5, length_includes_head = True,head_length=20, fc='b', ec='b')
-ax.arrow(*u_1_tr, head_width=5, length_includes_head = True,head_length=20, fc='g', ec='g')
-ax.arrow(*c_2_tr, head_width=5, length_includes_head = True,head_length=20, fc='r', ec='r')
-ax.arrow(*w_2_tr, head_width=5, length_includes_head = True,head_length=20, fc='b', ec='b')
-ax.arrow(*u_2_tr, head_width=5, length_includes_head = True,head_length=20, fc='g', ec='g')
-plt.text(-2*c_1u/3, -3*c_1a/4, '$c_1$', fontsize=20)
-plt.text(-2*w_1u/3, -3*c_1a/4, '$w_1$', fontsize=20)
-plt.text(2*c_2u/3, -3*w_2a/4, '$c_2$', fontsize=20)
-plt.text(2*w_2u/3, -3*w_2a/4, '$w_2$', fontsize=20)
-plt.show()
+        #Расчет скоростей:
+        c_1u = c_1*M.cos(M.radians(alpha_1))
+        c_1a = c_1*M.sin(M.radians(alpha_1))
+        w_1u = c_1u - u
+        w_2a = w_2*M.sin(M.radians(betta_2))
+        w_2u = w_2*M.cos(M.radians(betta_2))
+        c_2u=w_2u+u
+        w_1_tr = [0, 0, -w_1u, -c_1a]
+        c_1_tr = [0, 0, -c_1u, -c_1a]
+        u_1_tr = [-w_1u, -c_1a, -u, 0]
+    with right_column:
+        graph3 = plt.figure()
+        w_2_tr = [0, 0, w_2u, -w_2a]
+        c_2_tr = [0, 0, c_2u, -w_2a]
+        u_2_tr = [c_2u,-w_2a, -u, 0]
+        ax = plt.axes()
+        ax.arrow(*c_1_tr, head_width=5, length_includes_head = True,head_length=20, fc='r', ec='r')
+        ax.arrow(*w_1_tr, head_width=5, length_includes_head = True,head_length=20, fc='b', ec='b')
+        ax.arrow(*u_1_tr, head_width=5, length_includes_head = True,head_length=20, fc='g', ec='g')
+        ax.arrow(*c_2_tr, head_width=5, length_includes_head = True,head_length=20, fc='r', ec='r')
+        ax.arrow(*w_2_tr, head_width=5, length_includes_head = True,head_length=20, fc='b', ec='b')
+        ax.arrow(*u_2_tr, head_width=5, length_includes_head = True,head_length=20, fc='g', ec='g')
+        plt.text(-2*c_1u/3, -3*c_1a/4, '$c_1$', fontsize=20)
+        plt.text(-2*w_1u/3, -3*c_1a/4, '$w_1$', fontsize=20)
+        plt.text(2*c_2u/3, -3*w_2a/4, '$c_2$', fontsize=20)
+        plt.text(2*w_2u/3, -3*w_2a/4, '$w_2$', fontsize=20)
+        plt.grid(True)
+        plt.title("Векторы скоростей:")
+        st.pyplot(graph3)
+
 
 delta_a = 0.0025
 z_per_up = 2
@@ -375,14 +365,8 @@ mu_r = 0.75
 d_per = d + l_1
 delta_r = d_per*0.001
 delta_ekv = 1/M.sqrt(1/(mu_a*delta_a)**2+z_per_up/(mu_r*delta_r)**2)
-print("""Эквивалентный зазор в уплотнении по бандажу (периферийном) 
-            delta_ekv = %.3f мм""" % (delta_ekv*1000))
 xi_u_b=M.pi*d_per*delta_ekv*etta_ol1/F_1*M.sqrt(rho+1.8*l_2/d)
-print("""Относительные потери от утечек через бандажные уплотнения 
-           xi_u_b = %.3f""" % xi_u_b)
 Delta_Hub = xi_u_b*E_0
-print("""Абсолютные потери от утечек через периферийное уплотнение ступени  
-            Delta_Hub = %.3f кДж/кг""" % Delta_Hub)
 
 k_tr=0.0007
 Kappa_VS = 0
@@ -390,31 +374,20 @@ u = M.pi*d*n
 c_f = M.sqrt(2000*H_0)
 ucf = u/c_f
 xi_tr = k_tr*d**2/F_1*ucf**3
-print("""Определяем u/c_ф для ступени  
-            U/c_ф = %.3f""" % ucf)
-print("""Относительные потери от трения диска  
-            xi_tr =  = %.5f""" % xi_tr)
 Delta_Htr = xi_tr*E_0
-print("""Абсолютные потери от трения диска  
-            Delta_Htr = %.3f кДж/кг""" % Delta_Htr)
-
 k_v = 0.065
 m = 1
 xi_v = k_v/M.sin(M.radians(alpha_1))*(1-e_opt)/e_opt*ucf**3*m
-print('Относительные вентиляционные потери',xi_v)
 i_p = 4
 B_2 = b_2*M.sin(M.radians(beta_inst2))
 xi_segm = 0.25*B_2*l_2/F_1*ucf*etta_ol1*i_p
-print('Относительные сегментные потери',xi_segm)
 xi_parc = xi_v+xi_segm
 Delta_H_parc = E_0*xi_parc
 
 H_i = E_0 - Delta_Hr*1e-3 - Delta_Hs*1e-3 - (1-Kappa_VS)*Delta_Hvs*1e-3 - Delta_Hub - Delta_Htr - Delta_H_parc
-print("""Использованный теплоперепад ступени  
-           H_i = %.3f кДж/кг$""" % H_i)
 eta_oi = H_i/E_0
-print("""Внутренний относительный КПД ступени  
-        eta_oi  = %.3f $""" % eta_oi)
+st.subheader("""Внутренний относительный КПД ступени  
+        eta_oi  = %.3f """ % eta_oi)
 N_i = G_0*H_i
-print("""Внутреняя мощность ступени  
+st.subheader("""Внутреняя мощность ступени  
             N_i = = %.2f кВт""" % N_i)
