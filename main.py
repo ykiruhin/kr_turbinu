@@ -540,7 +540,7 @@ if selected == "Задание 2":
     etta_ol1 = (E_0*1e3 - Delta_Hs-Delta_Hr-(1-kappa_vs)*Delta_Hvs)/(E_0*1e3)
     etta_ol2 = (u*(c_1*M.cos(M.radians(alpha_1))+c_2*M.cos(M.radians(alpha_2))))/(E_0*1e3)
 
-    st.info("Приведенны графики для максимального КПД при H_0 = 90 кДж/кг")
+    st.info("Приведены графики для максимального КПД при H_0 = 90 кДж/кг")
 
     with st.container():
         left_column, right_column = st.columns([1,1])
