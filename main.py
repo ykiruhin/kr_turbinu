@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
 import pandas as pd
+from sympy import *
 
 st.set_page_config(page_title="Курсовая работа", page_icon=":sunglasses:", layout = "wide")
 with st.container():
@@ -12,8 +13,8 @@ with st.container():
 
 selected = option_menu(
         menu_title="Меню",
-        options=["Курсовая работа","Задание 1", "Задание 2"],
-        icons=["award-fill","book","book"],
+        options=["Курсовая работа","Задание 1", "Задание 2","Задание 3"],
+        icons=["award-fill","book","book","book"],
         menu_icon="home",
         default_index=0,
         orientation ="horizontal"
@@ -163,7 +164,6 @@ if selected == "Задание 1":
         G_k = N_e / ((h_k - h_k_v) * eta_m * eta_eg * (10 ** 3)) * (1 / eta_ir - 1)
         return eta_ir, G_0, G_k
 
-
     a1, a2, a3 = [], [], []
     for p in pk:
         a = Calculate_G0_Gk(N_e=Ne, p_0=p0, T_0=T0, p_pp=ppp, T_pp=Tpp, p_k=p, T_pv=Tpv)
@@ -177,7 +177,7 @@ if selected == "Задание 1":
                 "Давление в конденсаторе, Па": (list(np.arange(2000, sld, 500))),
                 "КПД": a1,
                 "G_0, кг/c": a2,
-                "G_k, кг/c": a3
+                "G_k, кг/c": a3,
             })
             itog
 
@@ -540,7 +540,7 @@ if selected == "Задание 2":
     etta_ol1 = (E_0*1e3 - Delta_Hs-Delta_Hr-(1-kappa_vs)*Delta_Hvs)/(E_0*1e3)
     etta_ol2 = (u*(c_1*M.cos(M.radians(alpha_1))+c_2*M.cos(M.radians(alpha_2))))/(E_0*1e3)
 
-    st.info("Приведены графики для максимального КПД при H_0 = 90 кДж/кг")
+    st.info("Приведенны графики для максимального КПД при H_0 = 90 кДж/кг")
 
     with st.container():
         left_column, right_column = st.columns([1,1])
@@ -625,3 +625,200 @@ if selected == "Задание 2":
     N_i = G_0*H_i
     st.subheader("""Внутреняя мощность ступени  
                 N_i = = %.2f кВт""" % N_i)
+
+if selected == "Задание 3":
+    drc = st.number_input('Диаметр регулирующей ступени:: drc, МПа ', value=1.04)
+    D1 = drc - 0.26
+    h0 = 3382.03
+    p0 = st.number_input('Давление полного торможения перед нерегулируемой ступенью: p0, МПа ', value=12.9)
+    pz = st.number_input('Давление за ЦВД: pz, МПа ', value=2.4056)
+    sat_steam = WSP(P=p0, h=h0)
+    s_0 = sat_steam.s
+    t_0 = sat_steam.T
+    tetta = 20
+    rho_s = 0.05
+    alfa = 15
+    G0 = 165.091
+    fi = 0.96
+    n = 60
+    mu1 = 0.97
+    delta = 0.003
+    etaoi = 0.88
+    Z = 8
+    error = 2
+    i = 1
+
+    error = 2
+    i = 1
+    while error > 0.5:
+        rho = rho_s + 1.8 / (tetta + 1.8)
+        X = (fi * M.cos(M.radians(alfa))) / (2 * M.sqrt(1 - rho))
+        H01 = 12.3 * (D1 / X) ** 2 * (n / 50) ** 2
+        h2t = h0 - H01
+        steam2t = WSP(h=h2t, s=s_0)
+        v2t = steam2t.v
+        l11 = G0 * v2t * X / (M.pi ** 2 * D1 ** 2 * n * M.sqrt(1 - rho) * M.sin(M.radians(alfa)) * mu1)
+        tetta_old = tetta
+        tetta = D1 / l11
+        error = abs(tetta - tetta_old) / tetta_old * 100
+        i += 1
+
+    l21 = l11 + delta
+    d_s = D1 - l21
+    steam_tz = WSP(P=pz, s=s_0)
+    h_zt = steam_tz.h
+    H0 = h0 - h_zt
+    Hi = H0 * etaoi
+    h_z = h0 - Hi
+    steam_z = WSP(P=pz, h=h_z)
+    v_2z = steam_z.v
+    x = Symbol('x')
+    с = solve(x ** 2 + x * d_s - (l21 * (d_s + l21) * v_2z / v2t))
+    for j in с:
+        if j > 0:
+            l2z = j
+    d2z = d_s + l2z
+    tetta1 = (l21 + d_s) / l21
+    tettaz = (l2z + d_s) / l2z
+    rho1 = rho_s + 1.8 / (1.8 + tetta1)
+    rhoz = rho_s + 1.8 / (1.8 + tettaz)
+    X1 = (fi * M.cos(M.radians(alfa))) / (2 * M.sqrt(1 - rho1))
+    Xz = (fi * M.cos(M.radians(alfa))) / (2 * M.sqrt(1 - rhoz))
+
+    DeltaZ = 1
+    ite = 0
+    while DeltaZ > 0:
+        matr = []
+        Num = 0
+        SumH = 0
+        for _ in range(int(Z)):
+            li = (l21 - l2z) / (1 - Z) * Num + l21
+            di = (D1 - d2z) / (1 - Z) * Num + D1
+            tetta_i = di / li
+            rho_i = rho_s + 1.8 / (1.8 + tetta_i)
+            X_i = (fi * M.cos(M.radians(alfa))) / (2 * M.sqrt(1 - rho_i))
+            if Num < 1:
+                H_i = 12.3 * (di / X_i) ** 2 * (n / 50) ** 2
+            else:
+                H_i = 12.3 * (di / X_i) ** 2 * (n / 50) ** 2 * 0.95
+            Num = Num + 1
+            H_d = 0
+            SumH = SumH + H_i
+            matr.append([Num, round(di, 3), round(li, 3), round(tetta_i, 2), round(rho_i, 3), round(X_i, 3), round(H_i, 2),round(H_d, 2)])
+        H_m = SumH / Z
+        q_t = 4.8 * 10 ** (-4) * (1 - etaoi) * H0 * (Z - 1) / Z
+        Z_new = round(H0 * (1 + q_t) / H_m)
+        DeltaZ = abs(Z - Z_new)
+        Z = Z_new
+        ite += 1
+    DeltaH = (H0 * (1 + q_t) - SumH) / Z
+    a = 0
+    for elem in matr:
+        matr[a][7] = round(elem[6]+DeltaH,2)
+        a += 1
+
+    N_=[]
+    di_=[]
+    li_=[]
+    tettai_=[]
+    rhoi_=[]
+    Xi_=[]
+    Hi_=[]
+    Hdi_=[]
+    a = 0
+    for elem in matr:
+        N_.append(matr[a][0])
+        di_.append(matr[a][1])
+        li_.append(matr[a][2])
+        tettai_.append(matr[a][3])
+        rhoi_.append(matr[a][4])
+        Xi_.append(matr[a][5])
+        Hi_.append(matr[a][6])
+        Hdi_.append(matr[a][7])
+        a += 1
+
+    di_ = [float(x) for x in di_]
+    li_ = [float(x) for x in li_]
+    tettai_ = [float(x) for x in tettai_]
+    rhoi_ = [float(x) for x in rhoi_]
+    Xi_ = [float(x) for x in Xi_]
+    Hi_ = [float(x) for x in Hi_]
+    Hdi_ = [float(x) for x in Hdi_]
+
+    itog=pd.DataFrame( {"№ ступени": (N_),
+                           "di, м": (di_),
+                           "li, м": (li_),
+                           "θi ": (tettai_),
+                           "ρi ": (rhoi_),
+                           "Xi ": (Xi_),
+                           "Hi, кДж/кг": (Hi_),
+                           "Hi + Δ, кДж/кг": (Hdi_)
+                           }
+                       )
+    st.dataframe(itog)
+    z =[]
+    for a in range(1, Z+1):
+        z.append(a)
+
+    st.write("#")
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.gca()
+    ax.set_xticks(np.arange(1, 15, 1))
+    plt.grid(True)
+    plt.plot(z, di_, '-ro')
+    plt.title('Рисунок 1. Распределение средних диаметров по проточной части')
+    st.pyplot(fig)
+
+    st.write("#")
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.gca()
+    ax.set_xticks(np.arange(1, 15, 1))
+    plt.grid(True)
+    plt.plot(z, li_, '-ro')
+    plt.title('Рисунок 2. Распределение высот лопаток по проточной части')
+    st.pyplot(fig)
+
+    st.write("#")
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.gca()
+    ax.set_xticks(np.arange(1, 15, 1))
+    plt.grid(True)
+    plt.plot(z, tettai_, '-ro')
+    plt.title('Рисунок 3. Распределение обратной веерности по проточной части')
+    st.pyplot(fig)
+
+    st.write("#")
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.gca()
+    ax.set_xticks(np.arange(1, 15, 1))
+    plt.grid(True)
+    plt.plot(z, rhoi_, '-ro')
+    plt.title('Рисунок 4. Распределение степени реактивности по проточной части')
+    st.pyplot(fig)
+
+    st.write("#")
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.gca()
+    ax.set_xticks(np.arange(1, 15, 1))
+    plt.grid(True)
+    plt.plot(z, Xi_, '-ro')
+    plt.title('Рисунок 5. Распределение U/Cф по проточной части')
+    st.pyplot(fig)
+
+    st.write("#")
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.gca()
+    ax.set_xticks(np.arange(1, 15, 1))
+    plt.grid(True)
+    plt.plot(z, Hi_, '-ro')
+    plt.title('Рисунок 6. Распределение теплоперепадов по проточной части')
+    st.pyplot(fig)
+
+    st.write("#")
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.gca()
+    ax.set_xticks(np.arange(1, 15, 1))
+    plt.grid(True)
+    plt.plot(z, Hdi_, '-ro')
+    plt.title('Рисунок 7. Распределение теплоперепадов с учетом невязки по проточной части')
+    st.pyplot(fig)
