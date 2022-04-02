@@ -6,3 +6,4 @@ matplotlib==3.5.1
 bokeh==2.4.1
 streamlit_option_menu==0.3.2
 click==8.0.0
+numpy==1.21.5
