@@ -64,9 +64,7 @@ if selected == "Задание 1":
     delta_p_0 = 0.05 * p0
     delta_p_pp = 0.1 * ppp
     delta_p = 0.03 * ppp
-
     from bokeh.plotting import figure
-
 
     def Calculate_G0_Gk(N_e, p_0, T_0, p_pp, T_pp, p_k, T_pv):
         # Потери:
@@ -627,21 +625,43 @@ if selected == "Задание 2":
                 N_i = = %.2f кВт""" % N_i)
 
 if selected == "Задание 3":
-    drc = st.number_input('Диаметр регулирующей ступени:: drc, МПа ', value=1.04)
+    # Праметры точки торможения:
+    p0 = 12.9
+    t0 = 546
+    T0 = t0 + 273.15
+    point0 = WSP(P=p0, T=T0)
+    h0 = point0.h
+    p_tor = p0 - 0.05 * p0
+    point_tor = WSP(P=p0, h=h0)
+    h_tor = point_tor.h
+    ppp = 2.48
+    p_1t = ppp + 0.1 * ppp
+    with st.container():
+        st.subheader('Дано:')
+        st.markdown('Диаметр регулирующей ступени: drc = 1.04 м')
+        st.markdown("""Давление полного торможения перед нерегулируемой ступенью: P0 = """ + str(round(p_tor,3)) + """ МПа""")
+        st.markdown("""Энтальпия полного торможения перед нерегулируемой ступенью: h0 = """ + str(round(h_tor,3)) + """ Дж/кг""")
+        st.markdown("Частота вращения вала: n = 60 Гц")
+        st.markdown("Расход пара в первую нерегулируемую ступень: G0 = 165.091 кг/c")
+        st.markdown("""Давление пара за ЦВД: pz = """ + str(round(p_1t,3)) + """ МПа""")
+        st.markdown("Количество ступеней ЦВД прототипа: Z = 8")
+        st.subheader(' ')
+        st.subheader('Корректировка данных: ')
+        rho_s = st.slider('Степень реактивности первой нерегулируемой ступени в корне rho_s:', min_value=0.03, max_value=0.07, value=0.05, step=0.001)
+        alfa = st.slider('Эффективный угол выхода потока из сопловой решетки: alfa', min_value=13, max_value=16, value=15, step=1)
+        fi = st.slider('Коэффициент скорости сопловой решетки: fi', min_value=0.93, max_value=0.96, value=0.96, step=0.01)
+        mu1 = st.slider('Коэффициент расхода сопловой решетки первой нерегулируемой ступени: mu1', min_value=0.95, max_value=0.97, value=0.97, step=0.01)
+    drc = 1.04
     D1 = drc - 0.26
-    h0 = 3382.03
-    p0 = st.number_input('Давление полного торможения перед нерегулируемой ступенью: p0, МПа ', value=12.9)
-    pz = st.number_input('Давление за ЦВД: pz, МПа ', value=2.4056)
+    h0 = h_tor
+    p0 = p_tor
+    pz = p_1t
     sat_steam = WSP(P=p0, h=h0)
     s_0 = sat_steam.s
     t_0 = sat_steam.T
     tetta = 20
-    rho_s = 0.05
-    alfa = 15
     G0 = 165.091
-    fi = 0.96
     n = 60
-    mu1 = 0.97
     delta = 0.003
     etaoi = 0.88
     Z = 8
@@ -736,7 +756,6 @@ if selected == "Задание 3":
         Hi_.append(matr[a][6])
         Hdi_.append(matr[a][7])
         a += 1
-
     di_ = [float(x) for x in di_]
     li_ = [float(x) for x in li_]
     tettai_ = [float(x) for x in tettai_]
@@ -745,17 +764,19 @@ if selected == "Задание 3":
     Hi_ = [float(x) for x in Hi_]
     Hdi_ = [float(x) for x in Hdi_]
 
-    itog=pd.DataFrame( {"№ ступени": (N_),
-                           "di, м": (di_),
-                           "li, м": (li_),
-                           "θi ": (tettai_),
-                           "ρi ": (rhoi_),
-                           "Xi ": (Xi_),
-                           "Hi, кДж/кг": (Hi_),
-                           "Hi + Δ, кДж/кг": (Hdi_)
-                           }
-                       )
-    st.dataframe(itog)
+    st.info("Таблица 1. Распределение параметров по ступеням:")
+    with st.container():
+        itog=pd.DataFrame( {"№ ступени": (N_),
+                               "di, м": (di_),
+                               "li, м": (li_),
+                               "θi ": (tettai_),
+                               "ρi ": (rhoi_),
+                               "Xi ": (Xi_),
+                               "Hi, кДж/кг": (Hi_),
+                               "Hi + Δ, кДж/кг": (Hdi_)
+                               }
+                           )
+        st.dataframe(itog)
     z =[]
     for a in range(1, Z+1):
         z.append(a)
