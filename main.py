@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
 import pandas as pd
+from bokeh.plotting import figure
 from sympy import *
 
 st.set_page_config(page_title="Курсовая работа", page_icon=":sunglasses:", layout = "wide")
@@ -20,15 +21,17 @@ selected = option_menu(
         orientation ="horizontal"
     )
 if selected == "Курсовая работа":
-    st.subheader("Спроектировать эскиз проточной части ЦВД паровой турбины."
-                 "Исходные данные представляются в виде таблицы и выбираются по номеру журнала."
-                 "")
-    st.subheader("При выполнении КР провести следующие работы:")
-    st.markdown("1. Построить процесс расширения пара в турбине. "
-                "Определение расходов пара на входе в турбину (G0) и в конденсатор (Gк). "
-                "Получить зависимость КПД ПТУ от параметра заданного в таблице.")
-    st.markdown("2. Проведение расчета регулирующей ступени и определение зависимости ηол от U/cф")
-    st.markdown("3. Определение числа ступеней и распределение параметров по ним.")
+    with st.container():
+            st.subheader("Спроектировать эскиз проточной части ЦВД паровой турбины."
+                         "Исходные данные представляются в виде таблицы и выбираются по номеру журнала."
+                         "")
+            st.subheader("При выполнении КР провести следующие работы:")
+            st.markdown("1. Построить процесс расширения пара в турбине. "
+                        "Определение расходов пара на входе в турбину (G0) и в конденсатор (Gк). "
+                        "Получить зависимость КПД ПТУ от параметра заданного в таблице.")
+            st.markdown("2. Проведение расчета регулирующей ступени и определение зависимости ηол от U/cф")
+            st.markdown("3. Определение числа ступеней и распределение параметров по ним.")
+
     # чтение из файла:
     Dano = pd.read_excel('file.xlsx')
     option = st.selectbox(
@@ -78,7 +81,6 @@ if selected == "Задание 1":
     delta_p_0 = 0.05 * p0
     delta_p_pp = 0.1 * ppp
     delta_p = 0.03 * ppp
-    from bokeh.plotting import figure
 
     def Calculate_G0_Gk(N_e, p_0, T_0, p_pp, T_pp, p_k, T_pv):
         # Потери:
@@ -182,6 +184,11 @@ if selected == "Задание 1":
         a1.append(a[0])
         a2.append(a[1])
         a3.append(a[2])
+
+    eta_max: float = a1[0]
+    num = 0
+    for i in range(len(a1)):
+        if a1[i] > eta_max: eta_max = a1[i]; num = i
     with st.container():
         left_column, right_column = st.columns([1, 1.3])
         with left_column:
@@ -192,9 +199,9 @@ if selected == "Задание 1":
                 "G_k, кг/c": a3,
             })
             itog
-
-            st.write("Максимальный КПД:")
-            itog.iloc[0:1]
+            st.info(""" Максимальное КПД = """ + str('{:.4}'.format(float(a1[num]))) + """ %""")
+            st.info(""" Расход пара на входе в турбину (G0) при макс. КПД = """ + str('{:.5}'.format(float(a2[num]))) + """ кг/с""")
+            st.info(""" Расход пара на входе в конденсатор (Gк) при макс. КПД = """ + str('{:.5}'.format(float(a3[num]))) + """ кг/с""")
 
         with right_column:
             x = (list(np.arange(2000, sld, 500)))
@@ -209,8 +216,8 @@ if selected == "Задание 1":
             st.bokeh_chart(p, use_container_width=True)
 
     with st.container():
-        left_column, right_column = st.columns([1.2, 1])
-        with left_column:
+        left_column, right_column = st.columns([1, 1.3])
+        with right_column:
             fighs = plt.figure()
             point_0 = WSP(P=p0 * 1e-6, T=T0)
             p_0_d = p0 - delta_p_0
@@ -272,8 +279,6 @@ if selected == "Задание 1":
             plt.ylabel("h, кДж/кг")
             plt.grid(True)
             st.pyplot(fighs)
-        with right_column:
-            st.subheader('* h-s диаграмма составлена для p = 2 кПа')
 if selected == "Задание 2":
     with st.container():
         left_column, right_column = st.columns([1,1.2])
@@ -650,13 +655,14 @@ if selected == "Задание 3":
     h_tor = point_tor.h
     ppp = 2.48
     p_1t = ppp + 0.1 * ppp
+    G0 = 165.091
     with st.container():
         st.subheader('Дано:')
         st.markdown('Диаметр регулирующей ступени: drc = 1.04 м')
         st.markdown("""Давление полного торможения перед нерегулируемой ступенью: P0 = """ + str(round(p_tor,3)) + """ МПа""")
         st.markdown("""Энтальпия полного торможения перед нерегулируемой ступенью: h0 = """ + str(round(h_tor,3)) + """ Дж/кг""")
         st.markdown("Частота вращения вала: n = 60 Гц")
-        st.markdown("Расход пара в первую нерегулируемую ступень: G0 = 165.091 кг/c")
+        st.markdown("""Расход пара в первую нерегулируемую ступень: G0 = """+ str(round(G0,3)) +""" кг/c""")
         st.markdown("""Давление пара за ЦВД: pz = """ + str(round(p_1t,3)) + """ МПа""")
         st.markdown("Количество ступеней ЦВД прототипа: Z = 8")
         st.subheader(' ')
@@ -674,7 +680,6 @@ if selected == "Задание 3":
     s_0 = sat_steam.s
     t_0 = sat_steam.T
     tetta = 20
-    G0 = 165.091
     n = 60
     delta = 0.003
     etaoi = 0.88
