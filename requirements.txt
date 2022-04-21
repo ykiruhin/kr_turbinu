@@ -8,3 +8,4 @@ streamlit_option_menu==0.3.2
 click==8.0.0
 numpy==1.21.5
 openpyxl==3.0.9
+sympy==1.10.1
