@@ -29,6 +29,20 @@ if selected == "Курсовая работа":
                 "Получить зависимость КПД ПТУ от параметра заданного в таблице.")
     st.markdown("2. Проведение расчета регулирующей ступени и определение зависимости ηол от U/cф")
     st.markdown("3. Определение числа ступеней и распределение параметров по ним.")
+    # чтение из файла:
+    Dano = pd.read_excel('file.xlsx')
+    option = st.selectbox(
+        'Выберете ФИО сстудента',
+        Dano["ФИО"])
+    mas = []
+    st.write('Выбран:', option)
+    # Dano.loc[Dano['ФИО'] == option]
+    mas = Dano.loc[Dano['ФИО'] == option]
+    itog = pd.DataFrame({
+        "P0, МПа": mas['P0, МПа'],
+        "t0, C": mas['t0, C']
+    })
+    itog
 if selected == "Задание 1":
     with st.container():
         left_column, right_column = st.columns([1, 1.2])
@@ -36,7 +50,7 @@ if selected == "Задание 1":
             st.subheader('Исходные Данные:')
             st.markdown('Турбина: Т-180/215-12.8-2 ЛМЗ')
             st.markdown('Ne = 216 МВт')
-            st.markdown('p0 = 12.9 МПа')
+            st.markdown("p0 = 12.9 МПа")
             st.markdown('t0 = 546 C')
             st.markdown('ppp = 2.48 МПа')
             st.markdown('tpp = 556 C')
@@ -46,7 +60,7 @@ if selected == "Задание 1":
         with right_column:
             st.subheader('Корректировка данных:')
             Ne = st.number_input('Ne, МВт ', value=216) * 10 ** 6
-            p0 = st.number_input('p0, МПа ', value=12.9) * 10 ** 6
+            p0 = st.number_input('p0, МПа ', value = 12.9) * 10 ** 6
             t0 = st.number_input('t0, C ', value=546)
             T0 = t0 + 273.15  # K
             ppp = st.number_input('ppp, МПа ', value=2.48) * 10 ** 6
