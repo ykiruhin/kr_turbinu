@@ -296,7 +296,6 @@ if selected == "Задание 2":
         with right_column:
             st.subheader('Корректировка данных:')
             T_0 = t0 + 273.15  # K
-            G_0 = st.number_input('G_0, кг/с ', value=G_0)
             d = st.number_input('d, м ', value=1.04)
             n = st.number_input('n, Гц ', value=60)
             rho = st.number_input('rho ', value=0.05)
