@@ -14,8 +14,8 @@ with st.container():
 
 selected = option_menu(
         menu_title="Меню",
-        options=["Курсовая работа","Задание 1", "Задание 2","Задание 3"],
-        icons=["award-fill","book","book","book"],
+        options=["Курсовая работа","Задание 1", "Задание 2","Задание 3","Задание 4"],
+        icons=["award-fill","book","book","book","book"],
         menu_icon="home",
         default_index=0,
         orientation ="horizontal"
@@ -31,21 +31,8 @@ if selected == "Курсовая работа":
                         "Получить зависимость КПД ПТУ от параметра заданного в таблице.")
             st.markdown("2. Проведение расчета регулирующей ступени и определение зависимости ηол от U/cф")
             st.markdown("3. Определение числа ступеней и распределение параметров по ним.")
+            st.markdown("4. Создание эскиза проточной части ЦВД")
 
-    # чтение из файла:
-    Dano = pd.read_excel('file.xlsx')
-    option = st.selectbox(
-        'Выберете ФИО сстудента',
-        Dano["ФИО"])
-    mas = []
-    st.write('Выбран:', option)
-    # Dano.loc[Dano['ФИО'] == option]
-    mas = Dano.loc[Dano['ФИО'] == option]
-    itog = pd.DataFrame({
-        "P0, МПа": mas['P0, МПа'],
-        "t0, C": mas['t0, C']
-    })
-    itog
 if selected == "Задание 1":
     with st.container():
         left_column, right_column = st.columns([1, 1.2])
@@ -64,9 +51,12 @@ if selected == "Задание 1":
             st.subheader('Корректировка данных:')
             Ne = st.number_input('Ne, МВт ', value=216) * 10 ** 6
             p0 = st.number_input('p0, МПа ', value = 12.9) * 10 ** 6
+            st.session_state.p0 = p0/(10**6)
             t0 = st.number_input('t0, C ', value=546)
+            st.session_state.t0 = t0
             T0 = t0 + 273.15  # K
             ppp = st.number_input('ppp, МПа ', value=2.48) * 10 ** 6
+            st.session_state.ppp = ppp/(10**6)
             tpp = st.number_input('tpp, C ', value=556)
             Tpp = tpp + 273.15  # K
             tpv = st.number_input('tpv, C ', value=238)
@@ -202,6 +192,8 @@ if selected == "Задание 1":
             st.info(""" Максимальное КПД = """ + str('{:.4}'.format(float(a1[num]))) + """ %""")
             st.info(""" Расход пара на входе в турбину (G0) при макс. КПД = """ + str('{:.5}'.format(float(a2[num]))) + """ кг/с""")
             st.info(""" Расход пара на входе в конденсатор (Gк) при макс. КПД = """ + str('{:.5}'.format(float(a3[num]))) + """ кг/с""")
+            st.session_state.G0max = float(str('{:.5}'.format(float(a2[num]))))
+            st.session_state.Gkmax = float(str('{:.5}'.format(float(a3[num]))))
 
         with right_column:
             x = (list(np.arange(2000, sld, 500)))
@@ -280,14 +272,17 @@ if selected == "Задание 1":
             plt.grid(True)
             st.pyplot(fighs)
 if selected == "Задание 2":
+    p_0 = st.session_state.p0
+    t0 = st.session_state.t0
+    G_0 = st.session_state.G0max
     with st.container():
         left_column, right_column = st.columns([1,1.2])
         with left_column:
             st.subheader('Исходные Данные:')
             st.markdown('Турбина: Т-180/215-12.8-2 ЛМЗ')
-            st.markdown('Давление пара перед ступенью: p0 = 12.9 МПа')
-            st.markdown('Температура пара перед ступенью: t0 = 546 C')
-            st.markdown('Расход пара: G_0 = 243.13 кг/c')
+            st.markdown("""Давление пара перед ступенью: p0 = """+ str(p_0) + """МПа""")
+            st.markdown("""Температура пара перед ступенью: t0 = """ + str(t0) +"""C""")
+            st.markdown("""Расход пара: G_0 = """+ str(G_0) +"""кг/c""")
             st.markdown('Средний диаметр: d = 1.04 м')
             st.markdown('Частота вращения: n = 60 Гц')
             st.markdown('Степень реактивности rho = 0.05')
@@ -300,8 +295,6 @@ if selected == "Задание 2":
             st.markdown('kappa_vs = 0')
         with right_column:
             st.subheader('Корректировка данных:')
-            p_0 = st.number_input('p0, МПа ', value = 12.9)
-            t0 = st.number_input('t0, C ', value = 546)
             T_0 = t0 + 273.15  # K
             G_0 = st.number_input('G_0, кг/с ', value=243.13)
             d = st.number_input('d, м ', value=1.04)
@@ -645,17 +638,17 @@ if selected == "Задание 2":
 
 if selected == "Задание 3":
     # Праметры точки торможения:
-    p0 = 12.9
-    t0 = 546
+    p0 = st.session_state.p0
+    t0 = st.session_state.t0
     T0 = t0 + 273.15
     point0 = WSP(P=p0, T=T0)
     h0 = point0.h
     p_tor = p0 - 0.05 * p0
     point_tor = WSP(P=p0, h=h0)
     h_tor = point_tor.h
-    ppp = 2.48
+    ppp = st.session_state.ppp
     p_1t = ppp + 0.1 * ppp
-    G0 = 165.091
+    G0 = st.session_state.G0max
     with st.container():
         st.subheader('Дано:')
         st.markdown('Диаметр регулирующей ступени: drc = 1.04 м')
@@ -749,6 +742,7 @@ if selected == "Задание 3":
         Z_new = round(H0 * (1 + q_t) / H_m)
         DeltaZ = abs(Z - Z_new)
         Z = Z_new
+        st.session_state.Z_new = Z_new
         ite += 1
     DeltaH = (H0 * (1 + q_t) - SumH) / Z
     a = 0
@@ -862,3 +856,55 @@ if selected == "Задание 3":
     plt.plot(z, Hdi_, '-ro')
     plt.title('Рисунок 7. Распределение теплоперепадов с учетом невязки по проточной части')
     st.pyplot(fig)
+
+if selected == "Задание 4":
+    z = st.session_state.Z_new
+    st.write("""Число ступеней Z = """ + str(z) + """ (Определяется из задания 3)""")
+    drs = 1100
+    rrs = 1100 / 2
+
+    d_val = 540
+    r_val = 540 / 2
+
+    d_st = st.slider('Диаметр ступени d_st, мм', min_value=600, max_value=1000, value=820, step=50)
+    r_r = d_st / 2
+
+    r_r2 = r_val - 160
+    with st.container():
+        graph = plt.figure()
+        plt.plot([0, 0], [0, rrs], c="g")
+        plt.plot([0, 120], [rrs, rrs], c="g")
+        plt.plot([120, 120], [rrs, 0], c="g")
+        plt.plot([120, 240], [r_val, r_val], c="g")
+        plt.plot([0, -540], [r_val, r_val], c="g")
+        n1 = 0
+        n2 = 0
+        k = 1
+
+        for i in range(z - 1):
+            if i % 2 != 0:
+                plt.plot([240 + n1, 360 + n1], [r_val, r_val], c="g")
+                plt.plot([360 + n1, 360 + n1], [0, r_r], c="g")
+                plt.plot([360 + n1, 420 + n1], [r_r, r_r], c="g")
+                plt.plot([420 + n1, 420 + n1], [r_r, 0], c="g")
+                n1 = n1 + 180
+            else:
+                plt.plot([-540 - n2, -660 - n2], [r_val, r_val], c="g")
+                plt.plot([-660 - n2, -660 - n2], [0, r_r], c="g")
+                plt.plot([-660 - n2, -720 - n2], [r_r, r_r], c="g")
+                plt.plot([-720 - n2, -720 - n2], [r_r, 0], c="g")
+                n2 = n2 + 180
+        # Слева
+        plt.plot([-720 - n2 + 180, -720 - n2 + 180 - 1440], [r_val, r_val], c="g")
+        plt.plot([-720 - n2 + 180 - 1440, -720 - n2 + 180 - 1440], [r_val, 0], c="g")
+        plt.plot([-720 - n2 + 180 - 1440, -720 - n2 + 180 - 1440 - 480], [r_r2, r_r2], c="g")
+        plt.plot([-720 - n2 + 180 - 1440 - 480, -720 - n2 + 180 - 1440 - 480], [r_r2, 0], c="g")
+        # Справа
+        plt.plot([420 + n1 - 180, 420 + n1 - 180 + 960], [r_val, r_val], c="g")
+        plt.plot([420 + n1 - 180 + 960, 420 + n1 - 180 + 960], [r_val, 0], c="g")
+        plt.plot([420 + n1 - 180 + 960, 420 + n1 - 180 + 960 + 480], [r_r2, r_r2], c="g")
+        plt.plot([420 + n1 - 180 + 960 + 480, 420 + n1 - 180 + 960 + 480], [r_r2, 0], c="g")
+
+        plt.plot([-720 - n2 + 180 - 1440 - 480 - 300, 420 + n1 - 180 + 960 + 480 + 300], [0, 0], '-.',linewidth='1', c="black")
+        plt.plot([-720 - n2 + 180 - 1440 - 480, 420 + n1 - 180 + 960 + 480], [50, 50], ':', linewidth='1', c="black")
+        st.pyplot(graph)
