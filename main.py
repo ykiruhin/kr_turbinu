@@ -871,6 +871,7 @@ if selected == "Задание 4":
 
     r_r2 = r_val - 160
     with st.container():
+        st.info("Эскиз проточной части ЦВД:")
         graph = plt.figure()
         plt.plot([0, 0], [0, rrs], c="g")
         plt.plot([0, 120], [rrs, rrs], c="g")
