@@ -189,7 +189,7 @@ if selected == "Задание 1":
                 "G_k, кг/c": a3,
             })
             itog
-            st.info(""" Максимальное КПД = """ + str('{:.4}'.format(float(a1[num]))) + """ %""")
+            st.info(""" Максимальное КПД = """ + str('{:.4}'.format(float(a1[num]))) + """ """)
             st.info(""" Расход пара на входе в турбину (G0) при макс. КПД = """ + str('{:.5}'.format(float(a2[num]))) + """ кг/с""")
             st.info(""" Расход пара на входе в конденсатор (Gк) при макс. КПД = """ + str('{:.5}'.format(float(a3[num]))) + """ кг/с""")
             st.session_state.G0max = float(str('{:.5}'.format(float(a2[num]))))
